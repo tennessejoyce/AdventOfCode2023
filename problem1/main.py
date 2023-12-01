@@ -1,8 +1,10 @@
-"""Day 1: Trebuchet?!"""
+"""
+Day 1: Trebuchet?!
+https://adventofcode.com/2023/day/1
+"""
 import logging
-import re
-from typing import List
 import argparse
+import re
 
 DIGITS = ["one", "two", "three", "four", "five", "six", "seven", "eight", "nine"]
 
@@ -76,7 +78,7 @@ def to_int(digit: str) -> int:
         return DIGITS.index(digit) + 1
 
 
-def find_all_overlapping(pattern: str, string: str) -> List[str]:
+def find_all_overlapping(pattern: str, string: str) -> list[str]:
     """
     Find all overlapping matches of a pattern in a string.
 
