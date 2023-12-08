@@ -9,7 +9,7 @@
             "type": "python",
             "request": "launch",
             "program": "${file}",
-            "args": ["problem6/input.txt"]//, "--debug", "--part", "2"],
+            "args": ["problem7/input.txt", "--debug", "--part", "1"],
             "console": "integratedTerminal",
             "justMyCode": true
         }
