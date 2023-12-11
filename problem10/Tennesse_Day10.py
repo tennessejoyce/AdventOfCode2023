@@ -2,7 +2,6 @@
 Day 10: Pipe Maze
 https://adventofcode.com/2023/day/10
 """
-import logging
 from utilities import run_aoc
 import networkx as nx
 
@@ -33,42 +32,34 @@ def run_part2(input_text: str) -> int:
     loop = set(nx.shortest_path(G, starting_position).keys())
     # Process rows one at a time. Move from left to right, and keep track
     # of how many times we've crossed the loop (odd = inside, even = outside).
-    # There are two ways to cross a loop: directly with a vertical line |, or
-    # indirectly with something like L----7. To handle the indirect case, we
-    # need to keep track of the last_hinge. If we start with an L hinge and end
-    # with a 7, that's a crossing. But if we start with L and end with J, that's
-    # not a crossing.
     interior = set()
     for i, line in enumerate(input_text.splitlines()):
         inside = False
-        last_hinge = None
         for j, char in enumerate(line):
             if char == "S":
                 char = get_node_type(G, (i, j))
             if (i, j) not in loop:
                 if inside:
                     interior.add((i, j))
-            else:
-                if char == "|":
-                    inside = not inside
-                elif char in "LJ7F":
-                    if last_hinge is None:
-                        last_hinge = char
-                    else:
-                        if last_hinge + char in ["L7", "FJ"]:
-                            inside = not inside
-                        last_hinge = None
+            elif char in "|LJ":
+                inside = not inside
     display(input_text, loop, interior)
     return len(interior)
 
 
 def parse_input(input_text: str) -> list[tuple[str, int]]:
-    """Parse the hands and bids from the input text."""
+    """Parse a nx.Graph from the input text."""
     lines = input_text.splitlines()
     num_rows = len(lines)
     num_cols = len(lines[0])
     starting_position = None
     G = nx.grid_2d_graph(num_rows, num_cols)
+    # Loop through the characters in the input, and add edges to the
+    # graph based on the directionality of the characters.
+    #
+    # It requires two connections for an edge to count. The edge is
+    # created on the first connection, but if the second connection
+    # is never made it'll get deleted at the end.
     for i, line in enumerate(lines):
         for j, char in enumerate(line):
             if char == "|":
@@ -98,7 +89,7 @@ def parse_input(input_text: str) -> list[tuple[str, int]]:
                 mark_edge(G, ((i, j), (i + 1, j)))
                 mark_edge(G, ((i, j), (i, j + 1)))
     assert starting_position is not None
-    # Remove any nodes that got created outside the grid when adding edges.
+    # Remove any edges that were only connected once.
     for e in list(G.edges):
         if "count" not in G.edges[e] or G.edges[e]["count"] < 2:
             G.remove_edge(*e)
@@ -106,6 +97,8 @@ def parse_input(input_text: str) -> list[tuple[str, int]]:
 
 
 def mark_edge(G, e):
+    """Increment the count of the edge in the graph, or add it if it doesn't
+    exist yet."""
     if e not in G.edges:
         return
     if "count" not in G.edges[e]:
@@ -114,7 +107,7 @@ def mark_edge(G, e):
         G.edges[e]["count"] += 1
 
 
-def display(input_text, mask, interior=set()):
+def display(input_text, mask, interior=tuple()):
     """Display the path discovered for debugging purposes."""
     output = ""
     for i, line in enumerate(input_text.splitlines()):
