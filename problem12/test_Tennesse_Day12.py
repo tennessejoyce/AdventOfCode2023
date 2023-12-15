@@ -1,70 +1,51 @@
 import unittest
 import numpy as np
-from Tennesse_Day12 import (
-    get_group_sizes,
-    count_options,
-    count_options_recursive,
-    split_groups,
-)
+from Tennesse_Day12 import SpringCountingProblem, parse_records
 
 
-class TestSplitGroups(unittest.TestCase):
-    def test_split_groups1(self):
-        groups = [3, 1, 2, 4, 5]
-        num_left = 6
-        expected_left_groups = [3, 1, 2]
-        expected_right_groups = [4, 5]
-        expected_is_split = False
-        left_groups, right_groups, is_split = split_groups(groups, num_left)
-        self.assertEqual(left_groups, expected_left_groups)
-        self.assertEqual(right_groups, expected_right_groups)
-        self.assertEqual(is_split, expected_is_split)
+class TestSpringCountingProblem(unittest.TestCase):
+    def setUp(self):
+        records = parse_records(".??..??...?##")
+        groups = [1, 1, 3]
+        self.problem = SpringCountingProblem(records, groups)
 
-    def test_split_groups2(self):
-        groups = [3, 1, 2, 4, 5]
-        num_left = 8
-        expected_left_groups = [3, 1, 2, 2]
-        expected_right_groups = [2, 5]
-        expected_is_split = True
-        left_groups, right_groups, is_split = split_groups(groups, num_left)
-        self.assertEqual(left_groups, expected_left_groups)
-        self.assertEqual(right_groups, expected_right_groups)
-        self.assertEqual(is_split, expected_is_split)
+    def test_num_damaged(self):
+        self.assertEqual(self.problem.num_damaged(0, 5), 0)
+        self.assertEqual(self.problem.num_damaged(9, 12), 1)
 
+    def test_num_undamaged(self):
+        self.assertEqual(self.problem.num_undamaged(0, 5), 3)
+        self.assertEqual(self.problem.num_undamaged(9, 12), 1)
 
-class TestGetGroupSizes(unittest.TestCase):
-    def test_get_group_sizes(self):
-        record = np.array([0, 1, 1, 1, 0, 1, 0, 1, 1])
-        expected_group_sizes = [3, 1, 2]
-        self.assertEqual(get_group_sizes(record), expected_group_sizes)
+    def test_num_unknown(self):
+        self.assertEqual(self.problem.num_unknown(0, 5), 2)
+        self.assertEqual(self.problem.num_unknown(9, 12), 1)
 
+    def test_prune(self):
+        self.assertTrue(self.problem.prune(0, 5, 0, 2))
+        self.assertFalse(self.problem.prune(11, 13, 0, 2))
+        self.assertFalse(self.problem.prune(0, 8, 0, 3))
+        self.assertTrue(self.problem.prune(0, 13, 0, 3))
+        self.assertFalse(self.problem.prune(8, 13, 0, 3))
+        self.assertTrue(self.problem.prune(8, 13, 2, 3))
 
-class TestCountOptions(unittest.TestCase):
-    def test_count_options1(self):
-        record = np.array([2, 1, 1, 1, 2, 0, 1, 0, 2, 0, 2, 2, 0, 0, 1, 2, 2, 2, 0])
-        group = [5, 1, 2, 1, 1]
-        expected_options = 2
-        self.assertEqual(count_options(record, group), expected_options)
+    def test_can_start_at(self):
+        self.assertTrue(self.problem.can_start_at(1, 2))
+        self.assertFalse(self.problem.can_start_at(1, 3))
+        self.assertTrue(self.problem.can_start_at(10, 3))
+        self.assertFalse(self.problem.can_start_at(9, 3))
 
-    def test_count_options2(self):
-        record = np.array([2, 2, 2, 2, 2, 2, 1, 1, 2, 0, 2])
-        group = [1, 1, 2]
-        expected_options = 6
-        self.assertEqual(count_options(record, group), expected_options)
+    def test_get_candidate_starts(self):
+        self.assertEqual(
+            self.problem.candidate_starts,
+            [[1, 2], [5, 6], [10]],
+        )
 
-
-class TestCountOptionsRecursive(unittest.TestCase):
-    def test_count_options1(self):
-        record = np.array([2, 1, 1, 1, 2, 0, 1, 0, 2, 0, 2, 2, 0, 0, 1, 2, 2, 2, 0])
-        group = [5, 1, 2, 1, 1]
-        expected_options = 2
-        self.assertEqual(count_options_recursive(record, group), expected_options)
-
-    def test_count_options2(self):
-        record = np.array([2, 2, 2, 2, 2, 2, 1, 1, 2, 0, 2])
-        group = [1, 1, 2]
-        expected_options = 6
-        self.assertEqual(count_options_recursive(record, group), expected_options)
+    def test_count_all(self):
+        self.assertEqual(
+            self.problem.count_all(),
+            4,
+        )
 
 
 if __name__ == "__main__":
